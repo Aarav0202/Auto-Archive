@@ -28,12 +28,12 @@ const userSchema = new mongoose.Schema(
       default: "customer",
     },
 
-    // dealershipId field Only compulsory for Employees
+    // dealershipId field optional for Customers, required for Employees
     dealershipId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Dealership",
       required: function () {
-        return this.role === "employee"; 
+        return this.role === "employee";
       },
     },
   },

@@ -1,7 +1,9 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+
 const User = require("../models/user");
+const Dealership = require("../models/dealership");
 
 const router = express.Router();
 
@@ -16,45 +18,59 @@ router.post("/register", async (req, res) => {
         .json({ message: "Name, email, password, and role are required" });
     }
 
-    // check duplicate email
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    const existingDealership = await Dealership.findOne({ email });
+    if (existingUser || existingDealership) {
       return res
         .status(400)
-        .json({ message: "User with this email already exists" });
+        .json({ message: "User or Dealership with this email already exists" });
     }
 
-    // handle employees -> only dealerships can create
     if (role === "employee") {
       if (!dealershipId) {
         return res
           .status(400)
           .json({ message: "dealershipId is required for employees" });
       }
-
-      // verify dealership exists
-      const dealership = await User.findById(dealershipId);
-      if (!dealership || dealership.role !== "carDealership") {
+      const dealership = await Dealership.findById(dealershipId);
+      if (!dealership) {
         return res.status(400).json({ message: "Invalid dealership ID" });
       }
     }
 
-    // handle customers (optional dealership)
     if (role === "customer" && dealershipId) {
-      const dealership = await User.findById(dealershipId);
-      if (!dealership || dealership.role !== "carDealership") {
+      const dealership = await Dealership.findById(dealershipId);
+      if (!dealership) {
         return res
           .status(400)
           .json({ message: "Invalid dealership ID for customer" });
       }
     }
 
-    // hash password
-    const saltRounds = parseInt(process.env.SALT_ROUNDS) || 10;
-    const salt = await bcrypt.genSalt(saltRounds);
-    const hashedPass = await bcrypt.hash(password, salt);
+  const saltRounds = parseInt(process.env.SALT_ROUNDS) || 10;
+  const salt = await bcrypt.genSalt(saltRounds);
+  const hashedPass = await bcrypt.hash(password, salt);
 
-    // create new user
+
+    if (role === "carDealership") {
+      const newDealership = new Dealership({
+        name,
+        email,
+        password: hashedPass,
+        employees: [],
+        customers: [],
+        carsSold: [],
+        totalCarsSold: 0,
+      });
+      await newDealership.save();
+
+      res.status(201).json({
+        message: "Dealership registered successfully",
+        dealership: { id: newDealership._id, name: newDealership.name, email: newDealership.email },
+      });
+      return;
+    }
+
     const newUser = new User({
       name,
       email,
@@ -77,10 +93,10 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// ---------------------- LOGIN ----------------------
+// ----LOGIN ----
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+  const { email, password, role } = req.body;
 
     if (!email || !password) {
       return res
@@ -88,21 +104,41 @@ router.post("/login", async (req, res) => {
         .json({ message: "Email and password are required" });
     }
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: "Invalid email or password" });
+    // Try to find user in User collection
+    let user = await User.findOne({ email });
+    let isDealership = false;
+    let dealership = null;
+    if (user) {
+      if (role !== user.role) {
+        return res.status(400).json({ message: "Invalid email, password, or role" });
+      }
+    } else {
+      dealership = await Dealership.findOne({ email });
+      if (!dealership) {
+        return res.status(400).json({ message: "Invalid email or password" });
+      }
+      isDealership = true;
+      if (role !== "carDealership") {
+        return res.status(400).json({ message: "Invalid email, password, or role" });
+      }
     }
 
-    const validPass = await bcrypt.compare(password, user.password);
+    // Validate password
+    const validPass = await bcrypt.compare(
+      password,
+      isDealership ? dealership.password : user.password
+    );
     if (!validPass) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+    const tokenPayload = isDealership
+      ? { id: dealership._id, email: dealership.email, role: "carDealership" }
+      : { id: user._id, email: user.email, role: user.role };
+
+    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -111,22 +147,30 @@ router.post("/login", async (req, res) => {
     });
 
     res.status(200).json({
-  message: "Login successful",
-  user: {
-    id: user._id,
-    email: user.email,
-    role: user.role,
-    name: user.name,       // optional
-    dealershipId: user.dealershipId || null // optional
-  }
-});
+      message: "Login successful",
+      user: isDealership
+        ? {
+            id: dealership._id,
+            email: dealership.email,
+            role: "carDealership",
+            name: dealership.name,
+            dealershipId: dealership._id,
+          }
+        : {
+            id: user._id,
+            email: user.email,
+            role: user.role,
+            name: user.name,
+            dealershipId: user.dealershipId || null,
+          },
+    });
   } catch (error) {
     console.error("Login route error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// ---------------------- LOGOUT ----------------------
+// ---- LOGOUT ----
 router.post("/logout", (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
@@ -136,7 +180,7 @@ router.post("/logout", (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 });
 
-// ---------------------- CHECK TOKEN ----------------------
+// ----- CHECK TOKEN ----
 router.get("/checkToken", async (req, res) => {
   const token = req.cookies.token;
   if (!token) {
@@ -146,14 +190,28 @@ router.get("/checkToken", async (req, res) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // fetch full user info from DB
-    const user = await User.findById(decoded.id).select("id name email role dealershipId");
-
-    if (!user) {
-      return res.status(401).json({ loggedIn: false });
+    // Try User collection first
+    let user = await User.findById(decoded.id).select("id name email role dealershipId");
+    if (user) {
+      return res.json({ loggedIn: true, user });
     }
 
-    res.json({ loggedIn: true, user });
+    // If not found, try Dealership collection
+    let dealership = await Dealership.findById(decoded.id).select("id name email");
+    if (dealership) {
+      return res.json({
+        loggedIn: true,
+        user: {
+          id: dealership._id,
+          name: dealership.name,
+          email: dealership.email,
+          role: "carDealership",
+          dealershipId: dealership._id,
+        },
+      });
+    }
+
+    return res.status(401).json({ loggedIn: false });
   } catch (err) {
     return res.status(401).json({ loggedIn: false });
   }
