@@ -1,6 +1,7 @@
 "use client"
-import React, { useState } from 'react'
-import toast, { Toaster } from 'react-hot-toast'
+
+import React, { useState, useEffect } from 'react'
+import toast from 'react-hot-toast'
 import { useAuth } from "@/app/context/AuthContext"
 import {
   Dialog,
@@ -13,7 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { 
-  UserPlus, 
+  Edit, 
   User, 
   Mail, 
   Phone, 
@@ -26,19 +27,52 @@ import {
   Loader2
 } from 'lucide-react'
 
-interface AddEmployeeDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onEmployeeAdded?: () => void // Callback to refresh employee list
+interface Employee {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  employeeId: string;
+  department: string;
+  position: string;
+  salary: number;
+  dateOfJoining: string;
+  carsSold: number;
+  salesTarget: number;
+  isActive: boolean;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
+  };
+  emergencyContact?: {
+    name?: string;
+    phone?: string;
+    relationship?: string;
+  };
+  dealershipId: {
+    _id: string;
+    name: string;
+  };
+  createdAt: string;
+  updatedAt: string;
 }
 
-export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEmployeeDialogProps) => {
+interface EditEmployeeDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  employee: Employee | null
+  onEmployeeUpdated?: () => void
+}
+
+export const EditEmployeeDialog = ({ open, onOpenChange, employee, onEmployeeUpdated }: EditEmployeeDialogProps) => {
   const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: '',
     phone: '',
     employeeId: '',
     position: '',
@@ -51,7 +85,7 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
       city: '',
       state: '',
       zipCode: '',
-      country: 'India'
+      country: ''
     },
     emergencyContact: {
       name: '',
@@ -60,11 +94,9 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
     }
   })
 
-  // Validation functions
+  // Validation functions (same as AddEmployeeDialog)
   const validatePhone = (phone: string) => {
-    // Remove all non-digit characters
     const cleanPhone = phone.replace(/\D/g, '')
-    // Limit to 10 digits
     return cleanPhone.slice(0, 10)
   }
 
@@ -74,12 +106,41 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
   }
 
   const validateJoiningDate = (date: string) => {
-    if (!date) return true // Allow empty date
+    if (!date) return true
     const selectedDate = new Date(date)
     const today = new Date()
-    today.setHours(23, 59, 59, 999) // Set to end of today
+    today.setHours(23, 59, 59, 999)
     return selectedDate <= today
   }
+
+  // Populate form when employee changes
+  useEffect(() => {
+    if (employee) {
+      setFormData({
+        name: employee.name || '',
+        email: employee.email || '',
+        phone: employee.phone || '',
+        employeeId: employee.employeeId || '',
+        position: employee.position || '',
+        department: employee.department || '',
+        salary: employee.salary?.toString() || '',
+        dateOfJoining: employee.dateOfJoining ? employee.dateOfJoining.split('T')[0] : '',
+        salesTarget: employee.salesTarget?.toString() || '',
+        address: {
+          street: employee.address?.street || '',
+          city: employee.address?.city || '',
+          state: employee.address?.state || '',
+          zipCode: employee.address?.zipCode || '',
+          country: employee.address?.country || ''
+        },
+        emergencyContact: {
+          name: employee.emergencyContact?.name || '',
+          phone: employee.emergencyContact?.phone || '',
+          relationship: employee.emergencyContact?.relationship || ''
+        }
+      })
+    }
+  }, [employee])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -123,151 +184,91 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
     }
   }
 
-  const generateEmployeeId = () => {
-    const timestamp = Date.now().toString().slice(-4)
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-    return `EMP${timestamp}${random}`
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    if (!employee) return
+
     // Validation checks
     if (!validateEmail(formData.email)) {
-      toast.error('Please enter a valid email address', {
-        duration: 4000,
-        position: 'top-center',
-      })
+      toast.error('Please enter a valid email address')
       return
     }
 
     if (formData.phone.length !== 10) {
-      toast.error('Phone number must be exactly 10 digits', {
-        duration: 4000,
-        position: 'top-center',
-      })
+      toast.error('Phone number must be exactly 10 digits')
       return
     }
 
     if (!validateJoiningDate(formData.dateOfJoining)) {
-      toast.error('Joining date cannot be in the future', {
-        duration: 4000,
-        position: 'top-center',
-      })
+      toast.error('Joining date cannot be in the future')
       return
     }
 
-    // Validate emergency contact phone if provided
     if (formData.emergencyContact.phone && formData.emergencyContact.phone.length !== 10) {
-      toast.error('Emergency contact phone must be exactly 10 digits', {
-        duration: 4000,
-        position: 'top-center',
-      })
+      toast.error('Emergency contact phone must be exactly 10 digits')
       return
     }
 
     setIsLoading(true)
 
     try {
-      // Generate employee ID if not provided
-      const employeeId = formData.employeeId || generateEmployeeId()
-      
-      // Prepare the data for API
-      const employeeData = {
+      const updateData = {
         name: formData.name,
         email: formData.email,
-        password: formData.password || 'password123', // Default password if not provided
         phone: formData.phone,
-        dealershipId: user?.dealershipId,
-        employeeId: employeeId,
+        employeeId: formData.employeeId,
         department: formData.department,
         position: formData.position,
         salary: parseFloat(formData.salary) || 0,
-        dateOfJoining: formData.dateOfJoining || new Date().toISOString().split('T')[0],
+        dateOfJoining: formData.dateOfJoining,
         salesTarget: formData.department === 'Sales' ? parseFloat(formData.salesTarget) || 0 : 0,
         address: formData.address,
         emergencyContact: formData.emergencyContact
       }
 
-      console.log('Submitting employee data:', employeeData)
-
-      const response = await fetch('http://localhost:8080/api/employees/register', {
-        method: 'POST',
+      const response = await fetch(`http://localhost:8080/api/employees/${employee._id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(employeeData),
+        body: JSON.stringify(updateData),
       })
 
       const data = await response.json()
 
       if (response.ok) {
-        toast.success('Employee added successfully! 🎉', {
-          duration: 4000,
-          position: 'top-center',
-        })
-        
-        // Reset form
-        setFormData({
-          name: '',
-          email: '',
-          password: '',
-          phone: '',
-          employeeId: '',
-          position: '',
-          department: '',
-          salary: '',
-          dateOfJoining: '',
-          salesTarget: '',
-          address: {
-            street: '',
-            city: '',
-            state: '',
-            zipCode: '',
-            country: 'India'
-          },
-          emergencyContact: {
-            name: '',
-            phone: '',
-            relationship: ''
-          }
-        })
-        
-        // Close dialog and refresh employee list
+        toast.success('Employee updated successfully! 🎉')
         onOpenChange(false)
-        if (onEmployeeAdded) {
-          onEmployeeAdded()
+        if (onEmployeeUpdated) {
+          onEmployeeUpdated()
         }
       } else {
-        toast.error(data.message || 'Failed to add employee', {
-          duration: 4000,
-          position: 'top-center',
-        })
+        toast.error(data.message || 'Failed to update employee')
       }
     } catch (error) {
-      console.error('Error adding employee:', error)
-      toast.error('Network error. Please try again.', {
-        duration: 4000,
-        position: 'top-center',
-      })
+      console.error('Error updating employee:', error)
+      toast.error('Network error. Please try again.')
     } finally {
       setIsLoading(false)
     }
   }
+
+  if (!employee) return null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader className="pb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg">
-              <UserPlus className="w-5 h-5 text-white" />
+            <div className="p-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg">
+              <Edit className="w-5 h-5 text-white" />
             </div>
             <div>
-              <DialogTitle className="text-xl font-semibold text-gray-900">Add New Employee</DialogTitle>
+              <DialogTitle className="text-xl font-semibold text-gray-900">Edit Employee</DialogTitle>
               <DialogDescription className="text-sm text-gray-600 mt-1">
-                Enter the employee details to add them to the dealership.
+                Update employee information for {employee.name}
               </DialogDescription>
             </div>
           </div>
@@ -291,7 +292,6 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  placeholder="Enter full name"
                   className="mt-1"
                   required
                 />
@@ -306,8 +306,8 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
                   name="employeeId"
                   value={formData.employeeId}
                   onChange={handleInputChange}
-                  placeholder="Auto-generated if empty"
                   className="mt-1"
+                  disabled
                 />
               </div>
             </div>
@@ -331,7 +331,6 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
                   type="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  placeholder="Enter valid email address"
                   className="mt-1"
                   required
                 />
@@ -347,26 +346,9 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
                   type="tel"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  placeholder="Enter 10-digit phone number"
-                  className="mt-1"
                   maxLength={10}
-                  pattern="[0-9]{10}"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="password" className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                  <Mail className="w-3 h-3" />
-                  Password (optional)
-                </Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  placeholder="Default: password123"
                   className="mt-1"
+                  required
                 />
               </div>
             </div>
@@ -389,7 +371,6 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
                   name="position"
                   value={formData.position}
                   onChange={handleInputChange}
-                  placeholder="e.g., Sales Associate, Mechanic"
                   className="mt-1"
                   required
                 />
@@ -431,7 +412,6 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
                   type="number"
                   value={formData.salary}
                   onChange={handleInputChange}
-                  placeholder="Annual salary in INR"
                   className="mt-1"
                   required
                 />
@@ -439,7 +419,7 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
               <div>
                 <Label htmlFor="dateOfJoining" className="flex items-center gap-2 text-sm font-medium text-gray-700">
                   <Calendar className="w-3 h-3" />
-                  Date of Joining * (not future)
+                  Date of Joining *
                 </Label>
                 <Input
                   id="dateOfJoining"
@@ -454,7 +434,7 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
               </div>
             </div>
             {formData.department === 'Sales' && (
-              <div>
+              <div className="mt-4">
                 <Label htmlFor="salesTarget" className="flex items-center gap-2 text-sm font-medium text-gray-700">
                   <DollarSign className="w-3 h-3" />
                   Sales Target (cars/month)
@@ -465,7 +445,6 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
                   type="number"
                   value={formData.salesTarget}
                   onChange={handleInputChange}
-                  placeholder="Monthly sales target"
                   className="mt-1"
                 />
               </div>
@@ -489,58 +468,44 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
                   name="address.street"
                   value={formData.address.street}
                   onChange={handleInputChange}
-                  placeholder="Street address"
                   className="mt-1"
                 />
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="address.city" className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <MapPin className="w-3 h-3" />
-                    City
-                  </Label>
+                  <Label htmlFor="address.city" className="text-sm font-medium text-gray-700">City</Label>
                   <Input
                     id="address.city"
                     name="address.city"
                     value={formData.address.city}
                     onChange={handleInputChange}
-                    placeholder="City"
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="address.state" className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <MapPin className="w-3 h-3" />
-                    State
-                  </Label>
+                  <Label htmlFor="address.state" className="text-sm font-medium text-gray-700">State</Label>
                   <Input
                     id="address.state"
                     name="address.state"
                     value={formData.address.state}
                     onChange={handleInputChange}
-                    placeholder="State"
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="address.zipCode" className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <MapPin className="w-3 h-3" />
-                    ZIP Code
-                  </Label>
+                  <Label htmlFor="address.zipCode" className="text-sm font-medium text-gray-700">ZIP Code</Label>
                   <Input
                     id="address.zipCode"
                     name="address.zipCode"
                     value={formData.address.zipCode}
                     onChange={handleInputChange}
-                    placeholder="ZIP Code"
                     className="mt-1"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="emergencyContact.name" className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <Contact className="w-3 h-3" />
+                  <Label htmlFor="emergencyContact.name" className="text-sm font-medium text-gray-700">
                     Emergency Contact Name
                   </Label>
                   <Input
@@ -548,13 +513,11 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
                     name="emergencyContact.name"
                     value={formData.emergencyContact.name}
                     onChange={handleInputChange}
-                    placeholder="Emergency contact name"
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="emergencyContact.phone" className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <Phone className="w-3 h-3" />
+                  <Label htmlFor="emergencyContact.phone" className="text-sm font-medium text-gray-700">
                     Emergency Contact Phone (10 digits)
                   </Label>
                   <Input
@@ -563,16 +526,13 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
                     type="tel"
                     value={formData.emergencyContact.phone}
                     onChange={handleInputChange}
-                    placeholder="10-digit phone number"
                     maxLength={10}
-                    pattern="[0-9]{10}"
                     className="mt-1"
                   />
                 </div>
               </div>
               <div>
-                <Label htmlFor="emergencyContact.relationship" className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                  <Contact className="w-3 h-3" />
+                <Label htmlFor="emergencyContact.relationship" className="text-sm font-medium text-gray-700">
                   Relationship
                 </Label>
                 <Input
@@ -580,7 +540,6 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
                   name="emergencyContact.relationship"
                   value={formData.emergencyContact.relationship}
                   onChange={handleInputChange}
-                  placeholder="e.g., Spouse, Parent, Sibling"
                   className="mt-1"
                 />
               </div>
@@ -592,32 +551,30 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="px-6"
               disabled={isLoading}
             >
               Cancel
             </Button>
             <Button 
               type="submit"
-              className="px-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+              className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
               disabled={isLoading}
             >
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Adding Employee...
+                  Updating...
                 </>
               ) : (
                 <>
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Add Employee
+                  <Edit className="w-4 h-4 mr-2" />
+                  Update Employee
                 </>
               )}
             </Button>
           </div>
         </form>
       </DialogContent>
-      <Toaster />
     </Dialog>
   )
 }

@@ -38,134 +38,65 @@ const Navbar = () => {
   return (
     <div
       className={cn(
-        "z-50 bg-background dark:bg-[#1F1F1F] fixed top-0 flex items-center w-full p-6",
-        scrolled && "border-b shadow-sm"
+        "z-50 bg-gradient-to-r from-slate-50 via-white to-slate-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 fixed top-0 flex items-center w-full p-6 border-b border-gray-200/50 dark:border-gray-700/50",
+        scrolled && "shadow-lg backdrop-blur-sm bg-white/80 dark:bg-gray-900/80"
       )}
     >
-      <div>
-        <Image src="/Images/Logo.svg" alt="logo" width={30} height={30} />
-        <p className="pl-2">AA</p>
+      <div className="flex items-center">
+        <div className="p-2 bg-gradient-to-r from-green-500 to-blue-600 rounded-lg shadow-md">
+          <Image 
+            src="/Images/Logo.svg" 
+            alt="logo" 
+            width={24} 
+            height={24} 
+            className="filter brightness-0 invert"
+          />
+        </div>
+        <p className="pl-3 font-bold text-lg bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+          Auto Archive
+        </p>
       </div>
-      <div className="md:ml-auto md:justify-end justify-between w-full flex items-center gap-x-2 ">
+      <div className="md:ml-auto md:justify-end justify-between w-full flex items-center gap-x-4">
         <HoverCard>
-          <HoverCardTrigger>
-            <Avatar>
-              <AvatarImage src="https://github.com/shadcn.png" />
-              <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
+          <HoverCardTrigger asChild>
+            <div className="cursor-pointer">
+              <Avatar className="h-8 w-8 ring-2 ring-green-500/30">
+                <AvatarImage src="https://github.com/shadcn.png" />
+                <AvatarFallback className="bg-gradient-to-r from-green-500 to-blue-600 text-white">
+                  {user?.name?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+            </div>
           </HoverCardTrigger>
-          <HoverCardContent>
-            <div className="">
-              <span className="text-xs font-bold text-muted-foreground">
-                Username:
-              </span>{" "}
-              <span className="text-xs font-bold">{user?.name}</span>
-            </div>
-            <div>
-              <span className="text-xs font-bold text-muted-foreground">
-                Email:
-              </span>{" "}
-              <span className="text-xs font-bold">{user?.email}</span>
-            </div>
-            <div className="w-full flex justify-center mt-5 gap-1.5">
-              <div>
-                <Sheet>
-                  <SheetTrigger className="btn">Settings</SheetTrigger>
-                  <SheetContent>
-                    <SheetHeader>
-                      <SheetTitle>Profile Info</SheetTitle>
-                      <SheetDescription>
-                        <div className="flex w-full justify-center">
-                          <Avatar className="h-30 w-30">
-                            <AvatarImage src="https://github.com/shadcn.png" />
-                            <AvatarFallback>CN</AvatarFallback>
-                          </Avatar>
-                        </div>
-
-                        <div className="parent-div flex flex-col justify-between h-[70vh] w-full p-4">
-                          <div className="space-y-2">
-                            <div>
-                              <span className="text-xs font-bold text-muted-foreground">
-                                Username:
-                              </span>{" "}
-                              <span className="text-xs font-bold">
-                                {user?.name}
-                              </span>
-
-                              <Dialog >
-                                <DialogTrigger className="px-2 text-blue-500 cursor-pointer">Change Name</DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>
-                                      Are you absolutely sure?
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                      This action cannot be undone. This will
-                                      permanently delete your account and remove
-                                      your data from our servers.
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                </DialogContent>
-                              </Dialog>
-
-                            </div>
-                            <div>
-                              <span className="text-xs font-bold text-muted-foreground">
-                                Email:
-                              </span>{" "}
-                              <span className="text-xs font-bold">
-                                {user?.email}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="justify-center w-52 ">
-                            <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="destructive">Logout</Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Do you want to logout?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    You will be logged out of your account.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={logout}>Confirm</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </div>
-                      </SheetDescription>
-                    </SheetHeader>
-                  </SheetContent>
-                </Sheet>
+          <HoverCardContent className="w-80 p-6 bg-white/80 backdrop-blur-sm border border-gray-200/50">
+            <div className="flex justify-between space-x-4">
+              <Avatar className="h-16 w-16 ring-2 ring-green-500/30">
+                <AvatarImage src="https://github.com/shadcn.png" />
+                <AvatarFallback className="bg-gradient-to-r from-green-500 to-blue-600 text-white text-lg">
+                  {user?.name?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="space-y-2 flex-1">
+                <h4 className="text-lg font-semibold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                  {user?.name || "Customer"}
+                </h4>
+                <p className="text-sm text-gray-600">
+                  {user?.email || "customer@example.com"}
+                </p>
+                <div className="flex items-center pt-2 space-x-2">
+                  <span className="text-xs text-gray-500">Role:</span>
+                  <span className="text-xs font-medium px-2 py-1 bg-gradient-to-r from-green-100 to-blue-100 text-green-800 rounded-full">
+                    Customer
+                  </span>
+                </div>
               </div>
-              <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive">Logout</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Do you want to logout?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      You will be logged out of your account.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={logout}>Confirm</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
             </div>
           </HoverCardContent>
         </HoverCard>
 
-        <Button>Hello</Button>
+        <Button className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white">
+          Dashboard
+        </Button>
       </div>
     </div>
   );
