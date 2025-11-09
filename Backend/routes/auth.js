@@ -8,7 +8,7 @@ const Employee = require("../models/employee");
 
 const router = express.Router();
 
-// ---------------------- REGISTER ----------------------
+// ---- REGISTER ----
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password, role, dealershipId } = req.body;
@@ -106,7 +106,7 @@ router.post("/login", async (req, res) => {
         .json({ message: "Email and password are required" });
     }
 
-    // Try to find user in User collection
+    // Try to find user in User db
     let user = await User.findOne({ email });
     let isDealership = false;
     let isEmployee = false;
@@ -217,13 +217,11 @@ router.get("/checkToken", async (req, res) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Try User collection first
     let user = await User.findById(decoded.id).select("id name email role dealershipId");
     if (user) {
       return res.json({ loggedIn: true, user });
     }
 
-    // Try Employee collection
     let employee = await Employee.findById(decoded.id).select("id name email employeeId department dealershipId");
     if (employee) {
       return res.json({
@@ -240,7 +238,6 @@ router.get("/checkToken", async (req, res) => {
       });
     }
 
-    // If not found, try Dealership collection
     let dealership = await Dealership.findById(decoded.id).select("id name email");
     if (dealership) {
       return res.json({
@@ -271,194 +268,85 @@ router.delete("/delete-account", async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Delete account request for user ID:", decoded.id);
     
-    // Set timeout for database operations
-    const timeoutMs = 15000; // 15 seconds
-    
-    // Check if user is a dealership
-    console.log("Checking if user is a dealership...");
-    let dealership = null;
-    try {
-      dealership = await Dealership.findById(decoded.id).maxTimeMS(timeoutMs);
-    } catch (dbError) {
-      console.error("Database error when finding dealership:", dbError);
-      return res.status(500).json({ 
-        message: "Database connection error. Please try again." 
-      });
-    }
+    let dealership = await Dealership.findById(decoded.id);
     
     if (dealership) {
-      console.log("Found dealership, proceeding with dealership deletion");
-      // Delete dealership account
-      try {
-        // First, delete all employees from Employee collection
-        console.log("Deleting employees from Employee collection...");
-        const employeesFromEmployeeModel = await Employee.deleteMany({ 
-          dealershipId: dealership._id
-        }).maxTimeMS(timeoutMs);
-        console.log("Deleted employees from Employee collection:", employeesFromEmployeeModel.deletedCount);
-        
-        // Delete employees that might still be in User collection (legacy)
-        console.log("Deleting legacy employees from User collection...");
-        const legacyEmployeesResult = await User.deleteMany({ 
-          dealershipId: dealership._id, 
-          role: "employee" 
-        }).maxTimeMS(timeoutMs);
-        console.log("Deleted legacy employees from User collection:", legacyEmployeesResult.deletedCount);
-        
-        // Delete all customers associated with this dealership
-        console.log("Deleting customers...");
-        const customersResult = await User.deleteMany({ 
-          dealershipId: dealership._id, 
-          role: "customer" 
-        }).maxTimeMS(timeoutMs);
-        console.log("Deleted customers:", customersResult.deletedCount);
-        
-        // Finally, delete the dealership itself
-        console.log("Deleting dealership...");
-        await Dealership.findByIdAndDelete(dealership._id).maxTimeMS(timeoutMs);
-        console.log("Dealership deleted successfully");
-        
-        // Clear the authentication cookie
-        res.clearCookie("token", {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-        });
-        
-        return res.status(200).json({ 
-          message: "Dealership account and all associated data deleted successfully" 
-        });
-      } catch (deleteError) {
-        console.error("Error deleting dealership:", deleteError);
-        return res.status(500).json({ 
-          message: "Error deleting dealership account. Please try again." 
-        });
-      }
-    }
-    
-    // Check if user is a customer/employee from User collection
-    console.log("Checking if user is a customer/employee in User collection...");
-    let user = null;
-    try {
-      user = await User.findById(decoded.id).maxTimeMS(timeoutMs);
-    } catch (dbError) {
-      console.error("Database error when finding user:", dbError);
-      return res.status(500).json({ 
-        message: "Database connection error. Please try again." 
+      await Employee.deleteMany({ dealershipId: dealership._id });
+      
+      await User.deleteMany({ dealershipId: dealership._id, role: "customer" });
+      
+      await Dealership.findByIdAndDelete(dealership._id);
+      
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      });
+      
+      return res.status(200).json({ 
+        message: "Dealership account and all associated data deleted successfully" 
       });
     }
     
-    if (user) {
-      console.log("Found user:", user.role, "proceeding with user deletion");
-      try {
-        // If user is an employee, remove them from dealership's employee list
-        if (user.role === "employee" && user.dealershipId) {
-          console.log("Removing employee from dealership...");
-          await Dealership.findByIdAndUpdate(
-            user.dealershipId,
-            { $pull: { employees: user._id } }
-          ).maxTimeMS(timeoutMs);
-        }
-        
-        // If user is a customer, remove them from dealership's customer list
-        if (user.role === "customer" && user.dealershipId) {
-          console.log("Removing customer from dealership...");
-          await Dealership.findByIdAndUpdate(
-            user.dealershipId,
-            { $pull: { customers: user._id } }
-          ).maxTimeMS(timeoutMs);
-        }
-        
-        // Delete the user account
-        console.log("Deleting user account...");
-        await User.findByIdAndDelete(user._id).maxTimeMS(timeoutMs);
-        console.log("User deleted successfully");
-        
-        // Clear the authentication cookie
-        res.clearCookie("token", {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-        });
-        
-        return res.status(200).json({ 
-          message: `${user.role.charAt(0).toUpperCase() + user.role.slice(1)} account deleted successfully` 
-        });
-      } catch (deleteError) {
-        console.error("Error deleting user:", deleteError);
-        return res.status(500).json({ 
-          message: "Error deleting user account. Please try again." 
-        });
-      }
-    }
+    let user = await User.findById(decoded.id);
     
-    // Check if user is an employee from Employee collection
-    console.log("Checking if user is an employee in Employee collection...");
-    let employee = null;
-    try {
-      employee = await Employee.findById(decoded.id).maxTimeMS(timeoutMs);
-    } catch (dbError) {
-      console.error("Database error when finding employee:", dbError);
-      return res.status(500).json({ 
-        message: "Database connection error. Please try again." 
+    if (user && user.role === "customer") {
+      if (user.dealershipId) {
+        await Dealership.findByIdAndUpdate(
+          user.dealershipId,
+          { $pull: { customers: user._id } }
+        );
+      }
+      
+      await User.findByIdAndDelete(user._id);
+      
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      });
+      
+      return res.status(200).json({ 
+        message: "Customer account deleted successfully" 
       });
     }
+    
+    let employee = await Employee.findById(decoded.id);
     
     if (employee) {
-      console.log("Found employee:", employee.name, "proceeding with employee deletion");
-      try {
-        // Remove employee from dealership's employee list
-        if (employee.dealershipId) {
-          console.log("Removing employee from dealership...");
-          await Dealership.findByIdAndUpdate(
-            employee.dealershipId,
-            { $pull: { employees: employee._id } }
-          ).maxTimeMS(timeoutMs);
-        }
-        
-        // Delete the employee account
-        console.log("Deleting employee account...");
-        await Employee.findByIdAndDelete(employee._id).maxTimeMS(timeoutMs);
-        console.log("Employee deleted successfully");
-        
-        // Clear the authentication cookie
-        res.clearCookie("token", {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-        });
-        
-        return res.status(200).json({ 
-          message: "Employee account deleted successfully" 
-        });
-      } catch (deleteError) {
-        console.error("Error deleting user:", deleteError);
-        return res.status(500).json({ 
-          message: "Error deleting user account. Please try again." 
-        });
+      if (employee.dealershipId) {
+        await Dealership.findByIdAndUpdate(
+          employee.dealershipId,
+          { $pull: { employees: employee._id } }
+        );
       }
+      
+      await Employee.findByIdAndDelete(employee._id);
+      
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      });
+      
+      return res.status(200).json({ 
+        message: "Employee account deleted successfully" 
+      });
     }
     
-    console.log("No account found for deletion");
     return res.status(404).json({ message: "Account not found" });
     
   } catch (error) {
-    console.error("Delete account route error:", error);
+    console.error("Delete account error:", error);
     if (error.name === "JsonWebTokenError") {
       return res.status(401).json({ message: "Invalid authentication token" });
     }
-    if (error.name === "MongooseError" || error.message.includes("timeout")) {
-      return res.status(500).json({ 
-        message: "Database connection timeout. Please check your connection and try again." 
-      });
-    }
-    return res.status(500).json({ message: "Server error. Please try again." });
+    return res.status(500).json({ message: "Server error" });
   }
 });
 
-// ---- DELETE CUSTOMER (for dealership use) ----
+// ---- DELETE CUSTOMER ----
 router.delete("/delete-customer/:customerId", async (req, res) => {
   const token = req.cookies.token;
   const { customerId } = req.params;
@@ -470,7 +358,6 @@ router.delete("/delete-customer/:customerId", async (req, res) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Verify that the requester is a dealership or employee
     let dealership = await Dealership.findById(decoded.id);
     let user = null;
     
@@ -483,13 +370,11 @@ router.delete("/delete-customer/:customerId", async (req, res) => {
       }
     }
     
-    // Find the customer to delete
     const customer = await User.findById(customerId);
     if (!customer || customer.role !== "customer") {
       return res.status(404).json({ message: "Customer not found" });
     }
     
-    // Verify the customer belongs to the dealership
     const dealershipId = dealership ? dealership._id : user.dealershipId;
     if (customer.dealershipId && !customer.dealershipId.equals(dealershipId)) {
       return res.status(403).json({ 
@@ -498,7 +383,6 @@ router.delete("/delete-customer/:customerId", async (req, res) => {
     }
     
     try {
-      // Remove customer from dealership's customer list
       if (customer.dealershipId) {
         await Dealership.findByIdAndUpdate(
           customer.dealershipId,
@@ -506,7 +390,6 @@ router.delete("/delete-customer/:customerId", async (req, res) => {
         );
       }
       
-      // Delete the customer account
       await User.findByIdAndDelete(customerId);
       
       return res.status(200).json({ 

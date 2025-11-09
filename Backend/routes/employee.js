@@ -8,7 +8,7 @@ const Employee = require("../models/employee");
 
 const router = express.Router();
 
-// ---------------------- EMPLOYEE REGISTER ----------------------
+// ---- EMPLOYEE REGISTER ----
 router.post("/register", async (req, res) => {
   try {
     const { 
@@ -24,7 +24,7 @@ router.post("/register", async (req, res) => {
       });
     }
 
-    // Check if email already exists in any collection
+    // Check if email already exists in any db
     const existingUser = await User.findOne({ email });
     const existingDealership = await Dealership.findOne({ email });
     const existingEmployee = await Employee.findOne({ email });
@@ -85,7 +85,6 @@ router.post("/register", async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Employee register route error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -121,8 +120,8 @@ router.get("/", async (req, res) => {
     
     // Fetch all employees for this dealership
     const employees = await Employee.find({ dealershipId: dealershipId })
-      .select("-password") // Exclude password field
-      .populate("dealershipId", "name") // Include dealership name
+      .select("-password")
+      .populate("dealershipId", "name") 
       .sort({ createdAt: -1 });
     
     return res.status(200).json({ 
@@ -209,15 +208,15 @@ router.put("/:employeeId", async (req, res) => {
     if (!employee) {
       return res.status(404).json({ message: "Employee not found" });
     }
-    
-    // Verify that the requester is the dealership (only dealership can update employee data)
+
+    // Verify that the requester is the dealership
     const dealership = await Dealership.findById(decoded.id);
     if (!dealership || !dealership._id.equals(employee.dealershipId)) {
       return res.status(403).json({ 
         message: "Only the dealership can update employee information" 
       });
     }
-    
+
     // Check if email is being updated and if it already exists
     if (req.body.email && req.body.email !== employee.email) {
       const existingUser = await User.findOne({ email: req.body.email });
@@ -281,7 +280,7 @@ router.put("/:employeeId", async (req, res) => {
   }
 });
 
-// ---- DELETE EMPLOYEE BY ID (for employee management) ----
+// ---- DELETE EMPLOYEE BY ID ----
 router.delete("/:id", async (req, res) => {
   const token = req.cookies.token;
   const { id } = req.params;
@@ -306,7 +305,7 @@ router.delete("/:id", async (req, res) => {
     if (!employee) {
       return res.status(404).json({ message: "Employee not found" });
     }
-    
+
     // Verify the employee belongs to this dealership
     if (!employee.dealershipId || !employee.dealershipId.equals(dealership._id)) {
       return res.status(403).json({ 

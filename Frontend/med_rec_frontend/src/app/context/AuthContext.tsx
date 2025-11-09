@@ -10,29 +10,23 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-// -----------------
-// Types
-// -----------------
 type User = {
   id: string;
   email: string;
-  role: "customer" | "carDealership" | "admin" | string;
+  role: string;
   name?: string;
-  dealershipId?: string | null;
+  dealershipId?: string;
 };
 
 type AuthContextType = {
   isLoggedIn: boolean;
   user: User | null;
-  login: (data: { email: string; password: string }) => Promise<void>;
+  login: (data: any) => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => Promise<void>;
 };
 
-// -----------------
-// Context
-// -----------------
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -40,7 +34,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
   const router = useRouter();
 
-  // ✅ Check auth (token) on load and on route change
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -51,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (res.ok) {
           const data = await res.json();
           setIsLoggedIn(true);
-          setUser(data.user); // backend should return user object
+          setUser(data.user); 
         } else {
           setIsLoggedIn(false);
           setUser(null);
@@ -67,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [pathname]);
 
   // ✅ Login function
-  const login = async (data: { email: string; password: string }) => {
+  const login = async (data: { email: string; password: string; role?: string }) => {
     try {
       const res = await fetch("http://localhost:8080/api/auth/login", {
         method: "POST",
@@ -88,7 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       toast.success("Login successful!");
 
-      // 🔹 Redirect by role
+      // Redirect by role
       if (result.user?.role === "carDealership") {
         router.push("/dealership/home");
       } else if (result.user?.role === "customer") {
@@ -101,8 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast.error("Login error");
     }
   };
-
-  // ✅ Register function
+//  ---- REGISTER ----
   const register = async (data: any) => {
     try {
       const res = await fetch("http://localhost:8080/api/auth/register", {

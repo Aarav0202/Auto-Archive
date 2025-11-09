@@ -5,9 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useScrollTop } from "@/hooks/use-scroll-top";
-import { AuthDialog } from "./AuthDialog";
-import { LoginForm } from "./LoginForm";
-import { RegisterForm } from "./RegisterForm";
+import { LoginComponent } from "./LoginComponent";
+import { RegisterComponent } from "./RegisterComponent";
 import { useAuth } from "@/app/context/AuthContext";
 
 const Navbar = () => {
@@ -46,22 +45,10 @@ const Navbar = () => {
             Logout
           </Button>
         ) : (
-          <AuthDialog
-            buttonLabel="Log in"
-            dialogTitle="Log in"
-            dialogDescription="Sign in to your account"
-            FormComponent={LoginForm}
-            onSubmit={login}
-          />
+          <LoginComponent />
         )}
 
-        <AuthDialog
-          buttonLabel="Register"
-          dialogTitle="Register"
-          dialogDescription="Create your account"
-          FormComponent={RegisterForm}
-          onSubmit={register}
-        />
+        <RegisterComponent />
       </div>
     </div>
   );
