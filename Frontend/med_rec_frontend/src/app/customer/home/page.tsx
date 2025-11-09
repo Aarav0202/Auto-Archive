@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/app/context/AuthContext";
+import { useEffect, useState } from "react";
 import Navbar from "../_components/Navbar";
 import Cards from "../_components/Cards";
 import Slider from "../_components/Slider";
@@ -8,6 +9,31 @@ import { User, Car, Calendar, Settings } from "lucide-react";
 
 export default function CustomerHome() {
   const { user } = useAuth();
+  const [apiMessage, setApiMessage] = useState<string>("");
+
+  // Fetch data from protected API endpoint
+  useEffect(() => {
+    const fetchCustomerData = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/customer/home", {
+          credentials: "include", // Important: sends cookies
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setApiMessage(data.message);
+        } else {
+          console.error("Failed to fetch customer data");
+        }
+      } catch (error) {
+        console.error("Error fetching customer data:", error);
+      }
+    };
+
+    if (user?.role === "customer") {
+      fetchCustomerData();
+    }
+  }, [user]);
   
   return (
     <>
@@ -27,6 +53,11 @@ export default function CustomerHome() {
             <p className="text-lg text-gray-600">
               Welcome back, <span className="font-semibold text-green-700">{user?.name || "dear customer"}</span>!
             </p>
+            {apiMessage && (
+              <p className="text-sm text-blue-600 mt-2 font-medium">
+                Server says: {apiMessage}
+              </p>
+            )}
           </div>
 
           {/* Quick Actions */}

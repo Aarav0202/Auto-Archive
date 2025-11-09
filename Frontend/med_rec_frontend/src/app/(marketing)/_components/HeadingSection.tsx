@@ -2,9 +2,8 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import React from "react";
-import { AuthDialog } from "./AuthDialog";
-import { LoginForm } from "./LoginForm";
-import { RegisterForm } from "./RegisterForm";
+import { LoginComponent } from "./LoginComponent";
+import { RegisterComponent } from "./RegisterComponent";
 import { useAuth } from "@/app/context/AuthContext";
 
 const HeadingSection = () => {
@@ -35,32 +34,10 @@ const HeadingSection = () => {
             Logout
           </Button>
         ) : (
-          <AuthDialog
-            buttonLabel={
-              <div className="flex items-center">
-                Log in
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </div>
-            }
-            dialogTitle="Log in"
-            dialogDescription="Sign in to your account"
-            FormComponent={LoginForm}
-            onSubmit={login}
-          />
+          <LoginComponent />
         )}
 
-        <AuthDialog
-          buttonLabel={
-            <div className="flex items-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-semibold">
-              Get AutoArchive
-              <ArrowRight className="h-4 w-4 ml-2 text-purple-600" />
-            </div>
-          }
-          dialogTitle="Register"
-          dialogDescription="Create your account"
-          FormComponent={RegisterForm}
-          onSubmit={register}
-        />
+        <RegisterComponent />
       </div>
     </div>
   );

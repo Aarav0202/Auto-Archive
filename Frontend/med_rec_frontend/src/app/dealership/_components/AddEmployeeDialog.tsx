@@ -60,11 +60,8 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
     }
   })
 
-  // Validation functions
   const validatePhone = (phone: string) => {
-    // Remove all non-digit characters
     const cleanPhone = phone.replace(/\D/g, '')
-    // Limit to 10 digits
     return cleanPhone.slice(0, 10)
   }
 
@@ -74,10 +71,10 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
   }
 
   const validateJoiningDate = (date: string) => {
-    if (!date) return true // Allow empty date
+    if (!date) return true 
     const selectedDate = new Date(date)
     const today = new Date()
-    today.setHours(23, 59, 59, 999) // Set to end of today
+    today.setHours(23, 59, 59, 999) 
     return selectedDate <= today
   }
 
@@ -104,7 +101,7 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
       }
       return
     }
-    
+
     // Handle nested object properties
     if (name.includes('.')) {
       const [parent, child] = name.split('.')
@@ -176,7 +173,7 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
       const employeeData = {
         name: formData.name,
         email: formData.email,
-        password: formData.password || 'password123', // Default password if not provided
+        password: formData.password || 'password123',
         phone: formData.phone,
         dealershipId: user?.dealershipId,
         employeeId: employeeId,
@@ -189,7 +186,6 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
         emergencyContact: formData.emergencyContact
       }
 
-      console.log('Submitting employee data:', employeeData)
 
       const response = await fetch('http://localhost:8080/api/employees/register', {
         method: 'POST',
