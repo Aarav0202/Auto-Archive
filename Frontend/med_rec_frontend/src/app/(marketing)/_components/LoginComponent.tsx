@@ -50,7 +50,7 @@ export function LoginComponent() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white shadow-lg transition-all duration-200">
+        <Button className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white shadow-lg transition-all duration-200 cursor-pointer w-full" type="submit">
           Login
         </Button>
       </DialogTrigger>
@@ -119,7 +119,7 @@ export function LoginComponent() {
               <Button 
                 type="button"
                 variant="outline"
-                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
               >
                 Cancel
               </Button>
@@ -127,7 +127,7 @@ export function LoginComponent() {
             <Button 
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white"
+              className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white cursor-pointer"
             >
               {loading ? "Logging in..." : "Login"}
             </Button>

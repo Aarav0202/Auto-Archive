@@ -78,7 +78,7 @@ const Navbar = () => {
         <div className="flex items-center gap-x-2">
           <HoverCard>
             <HoverCardTrigger asChild>
-              <div className="cursor-pointer">
+              <div className="cursor-pointer hover:opacity-80 transition-opacity">
                 <Avatar className="h-8 w-8 ring-2 ring-blue-500/30">
                   <AvatarImage src="/placeholder-avatar.jpg" />
                   <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
@@ -118,7 +118,7 @@ const Navbar = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-gradient-to-r from-red-50 to-red-100 border-red-200 text-red-700 hover:from-red-100 hover:to-red-200 transition-all duration-200"
+                className="bg-gradient-to-r from-red-50 to-red-100 border-red-200 text-red-700 hover:from-red-100 hover:to-red-200 transition-all duration-200 cursor-pointer"
               >
                 Logout
               </Button>
@@ -151,7 +151,7 @@ const Navbar = () => {
           <SheetTrigger asChild>
             <Button
               variant="ghost"
-              className="md:hidden p-2 bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100"
+              className="md:hidden p-2 bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 cursor-pointer"
             >
               <svg
                 className="h-6 w-6 text-gray-700"

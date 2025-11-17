@@ -25,15 +25,22 @@ import {HoverCard,HoverCardContent,HoverCardTrigger,} from "@/components/ui/hove
 import {Sheet,SheetContent,SheetDescription,SheetHeader,SheetTitle,SheetTrigger,} from "@/components/ui/sheet"
 
 import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle,DialogTrigger,} from "@/components/ui/dialog"
+import { Gift, Zap, Bell, Home } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 
 const Navbar = () => {
 
     const { user } = useAuth();
+    const router = useRouter()
     
   const scrolled = useScrollTop();
   const { isLoggedIn, login, register, logout } = useAuth(); // 👈 from context
   const [logoutDialogOpen, setLogoutDialogOpen] = React.useState(false);
+
+  const handleNavigation = (path: string) => {
+    router.push(path)
+  }
 
   return (
     <div
@@ -57,6 +64,41 @@ const Navbar = () => {
         </p>
       </div>
       <div className="md:ml-auto md:justify-end justify-between w-full flex items-center gap-x-4">
+        <div className="md:flex md:items-center md:gap-4 hidden">
+          <Button 
+            variant="ghost"
+            onClick={() => handleNavigation('/customer/home')}
+            className="text-sm font-medium hover:bg-green-50 hover:text-green-700 transition-colors duration-200 flex items-center gap-2 cursor-pointer"
+          >
+            <Home className="w-4 h-4 text-green-600" />
+            Home
+          </Button>
+          <Button 
+            variant="ghost"
+            onClick={() => handleNavigation('/customer/promotions')}
+            className="text-sm font-medium hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 flex items-center gap-2 cursor-pointer"
+          >
+            <Gift className="w-4 h-4 text-orange-500" />
+            Promotions
+          </Button>
+          <Button 
+            variant="ghost"
+            onClick={() => handleNavigation('/customer/launches')}
+            className="text-sm font-medium hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200 flex items-center gap-2 cursor-pointer"
+          >
+            <Zap className="w-4 h-4 text-blue-600" />
+            New Launches
+          </Button>
+          <Button 
+            variant="ghost"
+            onClick={() => handleNavigation('/customer/notifications')}
+            className="text-sm font-medium hover:bg-purple-50 hover:text-purple-700 transition-colors duration-200 flex items-center gap-2 cursor-pointer"
+          >
+            <Bell className="w-4 h-4 text-purple-600" />
+            Notifications
+          </Button>
+        </div>
+        
         <HoverCard>
           <HoverCardTrigger asChild>
             <div className="cursor-pointer">
@@ -94,9 +136,79 @@ const Navbar = () => {
           </HoverCardContent>
         </HoverCard>
 
-        <Button className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white">
+        <Button className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white cursor-pointer">
           Dashboard
         </Button>
+
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              className="md:hidden p-2 bg-gradient-to-r from-green-50 to-blue-50 hover:from-green-100 hover:to-blue-100 cursor-pointer"
+            >
+              <svg
+                className="h-6 w-6 text-gray-700"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </Button>
+          </SheetTrigger>
+          <SheetContent
+            side="right"
+            className="w-80 bg-white/90 backdrop-blur-sm border-l border-gray-200/50"
+          >
+            <SheetHeader>
+              <SheetTitle className="text-left bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                Navigation Menu
+              </SheetTitle>
+              <SheetDescription className="text-left text-gray-600">
+                Access your account features and explore deals
+              </SheetDescription>
+            </SheetHeader>
+            <div className="mt-6 space-y-2">
+              <Button 
+                variant="ghost"
+                onClick={() => handleNavigation('/customer/home')}
+                className="w-full justify-start hover:bg-green-50 hover:text-green-700 transition-colors duration-200 flex items-center gap-2 cursor-pointer"
+              >
+                <Home className="w-4 h-4 text-green-600" />
+                Home
+              </Button>
+              <Button 
+                variant="ghost"
+                onClick={() => handleNavigation('/customer/promotions')}
+                className="w-full justify-start hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 flex items-center gap-2 cursor-pointer"
+              >
+                <Gift className="w-4 h-4 text-orange-500" />
+                Promotions
+              </Button>
+              <Button 
+                variant="ghost"
+                onClick={() => handleNavigation('/customer/launches')}
+                className="w-full justify-start hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200 flex items-center gap-2 cursor-pointer"
+              >
+                <Zap className="w-4 h-4 text-blue-600" />
+                New Launches
+              </Button>
+              <Button 
+                variant="ghost"
+                onClick={() => handleNavigation('/customer/notifications')}
+                className="w-full justify-start hover:bg-purple-50 hover:text-purple-700 transition-colors duration-200 flex items-center gap-2 cursor-pointer"
+              >
+                <Bell className="w-4 h-4 text-purple-600" />
+                Notifications
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   );

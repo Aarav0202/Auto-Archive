@@ -25,14 +25,14 @@ const Footer = () => {
             <Button 
               variant="ghost" 
               size="sm"
-              className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-700 transition-all duration-200"
+              className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-700 transition-all duration-200 cursor-pointer"
             >
               Privacy Policy
             </Button>
             <Button 
               variant="ghost" 
               size="sm"
-              className="hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 hover:text-purple-700 transition-all duration-200"
+              className="hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 hover:text-purple-700 transition-all duration-200 cursor-pointer"
             >
               Terms & Conditions
             </Button>

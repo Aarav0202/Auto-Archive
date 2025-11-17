@@ -106,7 +106,7 @@ router.post("/login", async (req, res) => {
         .json({ message: "Email and password are required" });
     }
 
-    // Try to find user in User db
+    // Try to find user in User db (includes both customers and any other users)
     let user = await User.findOne({ email });
     let isDealership = false;
     let isEmployee = false;
@@ -114,7 +114,8 @@ router.post("/login", async (req, res) => {
     let employee = null;
     
     if (user) {
-      if (role !== user.role) {
+      // User found (could be customer, etc.)
+      if (role && role !== user.role) {
         return res.status(400).json({ message: "Invalid email, password, or role" });
       }
     } else {
@@ -122,7 +123,7 @@ router.post("/login", async (req, res) => {
       employee = await Employee.findOne({ email });
       if (employee) {
         isEmployee = true;
-        if (role !== "employee") {
+        if (role && role !== "employee") {
           return res.status(400).json({ message: "Invalid email, password, or role" });
         }
       } else {
@@ -132,7 +133,7 @@ router.post("/login", async (req, res) => {
           return res.status(400).json({ message: "Invalid email or password" });
         }
         isDealership = true;
-        if (role !== "carDealership") {
+        if (role && role !== "carDealership") {
           return res.status(400).json({ message: "Invalid email, password, or role" });
         }
       }
@@ -188,7 +189,8 @@ router.post("/login", async (req, res) => {
             email: user.email,
             role: user.role,
             name: user.name,
-            dealershipId: user.dealershipId || null,
+            dealershipIds: user.dealershipIds || [],
+            dealershipId: user.dealershipIds && user.dealershipIds.length > 0 ? user.dealershipIds[0] : null,
           },
     });
   } catch (error) {
@@ -217,9 +219,19 @@ router.get("/checkToken", async (req, res) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    let user = await User.findById(decoded.id).select("id name email role dealershipId");
+    let user = await User.findById(decoded.id).select("id name email role dealershipId dealershipIds");
     if (user) {
-      return res.json({ loggedIn: true, user });
+      return res.json({ 
+        loggedIn: true, 
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          dealershipIds: user.dealershipIds || [],
+          dealershipId: user.dealershipIds && user.dealershipIds.length > 0 ? user.dealershipIds[0] : null,
+        }
+      });
     }
 
     let employee = await Employee.findById(decoded.id).select("id name email employeeId department dealershipId");
@@ -258,6 +270,105 @@ router.get("/checkToken", async (req, res) => {
   }
 });
 
+// ---- CHANGE PASSWORD ----
+router.post("/change-password", async (req, res) => {
+  const token = req.cookies.token;
+  
+  if (!token) {
+    return res.status(401).json({ message: "Authentication required" });
+  }
+
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    // Validate inputs
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({ 
+        message: "Current password, new password, and confirm password are required" 
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ 
+        message: "New passwords do not match" 
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ 
+        message: "New password must be at least 6 characters long" 
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Try to find the user in all models (Customer, Dealership, Employee)
+    let user = null;
+    let userModel = null;
+    
+    // Check if it's a customer
+    user = await User.findById(decoded.id);
+    if (user) {
+      userModel = "User";
+    }
+    
+    // Check if it's a dealership
+    if (!user) {
+      user = await Dealership.findById(decoded.id);
+      if (user) {
+        userModel = "Dealership";
+      }
+    }
+    
+    // Check if it's an employee
+    if (!user) {
+      user = await Employee.findById(decoded.id);
+      if (user) {
+        userModel = "Employee";
+      }
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ 
+        message: "Current password is incorrect" 
+      });
+    }
+
+    // Check if new password is same as old password
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return res.status(400).json({ 
+        message: "New password cannot be the same as current password" 
+      });
+    }
+
+    // Hash new password
+    const saltRounds = parseInt(process.env.SALT_ROUNDS || "10");
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+    
+    // Update password
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({ 
+      message: "Password changed successfully" 
+    });
+
+  } catch (error) {
+    console.error("Change password error:", error);
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({ message: "Invalid authentication token" });
+    }
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
 // ---- DELETE ACCOUNT ----
 router.delete("/delete-account", async (req, res) => {
   const token = req.cookies.token;
@@ -274,7 +385,16 @@ router.delete("/delete-account", async (req, res) => {
     if (dealership) {
       await Employee.deleteMany({ dealershipId: dealership._id });
       
-      await User.deleteMany({ dealershipId: dealership._id, role: "customer" });
+      // For customers, unlink from this dealership or delete if no other dealerships
+      const customers = await User.find({ dealershipIds: dealership._id, role: "customer" });
+      for (const customer of customers) {
+        customer.dealershipIds = customer.dealershipIds.filter(id => !id.equals(dealership._id));
+        if (customer.dealershipIds.length === 0) {
+          await User.findByIdAndDelete(customer._id);
+        } else {
+          await customer.save();
+        }
+      }
       
       await Dealership.findByIdAndDelete(dealership._id);
       
@@ -292,11 +412,14 @@ router.delete("/delete-account", async (req, res) => {
     let user = await User.findById(decoded.id);
     
     if (user && user.role === "customer") {
-      if (user.dealershipId) {
-        await Dealership.findByIdAndUpdate(
-          user.dealershipId,
-          { $pull: { customers: user._id } }
-        );
+      // Remove from all dealerships
+      if (user.dealershipIds && user.dealershipIds.length > 0) {
+        for (const dealershipId of user.dealershipIds) {
+          await Dealership.findByIdAndUpdate(
+            dealershipId,
+            { $pull: { customers: user._id } }
+          );
+        }
       }
       
       await User.findByIdAndDelete(user._id);
@@ -376,21 +499,37 @@ router.delete("/delete-customer/:customerId", async (req, res) => {
     }
     
     const dealershipId = dealership ? dealership._id : user.dealershipId;
-    if (customer.dealershipId && !customer.dealershipId.equals(dealershipId)) {
+    
+    // Check if customer is linked to this dealership (new dealershipIds array)
+    const isLinked = customer.dealershipIds && customer.dealershipIds.some(id => id.equals(dealershipId));
+    if (!isLinked) {
       return res.status(403).json({ 
         message: "You can only delete customers from your own dealership" 
       });
     }
     
     try {
-      if (customer.dealershipId) {
-        await Dealership.findByIdAndUpdate(
-          customer.dealershipId,
-          { $pull: { customers: customer._id } }
-        );
+      // Remove dealership from customer's dealershipIds
+      customer.dealershipIds = customer.dealershipIds.filter(id => !id.equals(dealershipId));
+      
+      // Remove customer from dealership's customers array
+      if (dealership) {
+        dealership.customers = dealership.customers.filter(id => !id.equals(customerId));
+        await dealership.save();
+      } else {
+        const d = await Dealership.findById(dealershipId);
+        if (d) {
+          d.customers = d.customers.filter(id => !id.equals(customerId));
+          await d.save();
+        }
       }
       
-      await User.findByIdAndDelete(customerId);
+      // If customer has no more dealerships, delete completely
+      if (customer.dealershipIds.length === 0) {
+        await User.findByIdAndDelete(customerId);
+      } else {
+        await customer.save();
+      }
       
       return res.status(200).json({ 
         message: "Customer deleted successfully" 

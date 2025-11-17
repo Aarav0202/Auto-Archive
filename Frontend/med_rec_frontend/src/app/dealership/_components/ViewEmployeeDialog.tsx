@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -22,8 +22,10 @@ import {
   Contact,
   Car,
   CheckCircle,
-  XCircle
+  XCircle,
+  ShoppingCart
 } from 'lucide-react'
+import { EmployeeSalesHistoryDialog } from './EmployeeSalesHistoryDialog'
 
 interface Employee {
   _id: string;
@@ -65,6 +67,8 @@ interface ViewEmployeeDialogProps {
 }
 
 export const ViewEmployeeDialog = ({ open, onOpenChange, employee }: ViewEmployeeDialogProps) => {
+  const [showSalesHistory, setShowSalesHistory] = useState(false)
+
   if (!employee) return null
 
   // Helper functions
@@ -224,9 +228,19 @@ export const ViewEmployeeDialog = ({ open, onOpenChange, employee }: ViewEmploye
           {/* Performance (Sales only) */}
           {employee.department === 'Sales' && (
             <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-              <div className="flex items-center gap-2 mb-3">
-                <Car className="w-4 h-4 text-orange-600" />
-                <h3 className="font-medium text-orange-900">Sales Performance</h3>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Car className="w-4 h-4 text-orange-600" />
+                  <h3 className="font-medium text-orange-900">Sales Performance</h3>
+                </div>
+                <Button
+                  onClick={() => setShowSalesHistory(true)}
+                  size="sm"
+                  className="bg-orange-600 hover:bg-orange-700 text-white"
+                >
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  View Sales
+                </Button>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -316,13 +330,20 @@ export const ViewEmployeeDialog = ({ open, onOpenChange, employee }: ViewEmploye
         <div className="flex justify-end pt-4 border-t">
           <Button
             onClick={() => onOpenChange(false)}
-            className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
+            className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 cursor-pointer"
           >
             <Eye className="w-4 h-4 mr-2" />
             Close
           </Button>
         </div>
       </DialogContent>
+
+      {/* Employee Sales History Dialog */}
+      <EmployeeSalesHistoryDialog
+        open={showSalesHistory}
+        onOpenChange={setShowSalesHistory}
+        employee={employee}
+      />
     </Dialog>
   )
 }

@@ -111,7 +111,7 @@ export const DeleteEmployeeDialog = ({
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isDeleting}
-            className="px-4 py-2"
+            className="px-4 py-2 cursor-pointer"
           >
             Cancel
           </Button>
@@ -119,7 +119,7 @@ export const DeleteEmployeeDialog = ({
             variant="destructive"
             onClick={handleDelete}
             disabled={isDeleting}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700"
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 cursor-pointer"
           >
             {isDeleting ? (
               <>

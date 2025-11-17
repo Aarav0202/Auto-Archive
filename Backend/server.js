@@ -9,6 +9,14 @@ const homeRoutes = require("./routes/home");
 const customerRoutes = require("./routes/customer");
 const dealershipRoutes = require("./routes/dealership");
 const employeeRoutes = require("./routes/employee");
+const customersApiRoutes = require("./routes/customers");
+const vehiclesRoutes = require("./routes/vehicles");
+const servicesRoutes = require("./routes/services");
+const serviceRequestsRoutes = require("./routes/serviceRequests");
+const bookingsRoutes = require("./routes/bookings");
+const promotionsRoutes = require("./routes/promotions");
+const newCarLaunchesRoutes = require("./routes/newCarLaunches");
+const notificationsRoutes = require("./routes/notifications");
 
 require('dotenv').config();
 
@@ -40,6 +48,14 @@ app.use(cors({
 }));
 app.use('/api/auth', appRoutes);
 app.use('/api/employees', employeeRoutes);
+app.use('/api/customers', customersApiRoutes);
+app.use('/api/vehicles', vehiclesRoutes);
+app.use('/api/services', servicesRoutes);
+app.use('/api/service-requests', serviceRequestsRoutes);
+app.use('/api/bookings', bookingsRoutes);
+app.use('/api/promotions', promotionsRoutes);
+app.use('/api/new-car-launches', newCarLaunchesRoutes);
+app.use('/api/notifications', notificationsRoutes);
 app.use("/", homeRoutes);
 app.use("/", customerRoutes);
 app.use("/", dealershipRoutes);

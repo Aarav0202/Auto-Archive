@@ -28,7 +28,8 @@ const userSchema = new mongoose.Schema(
       default: "customer",
     },
 
-    // dealershipId field optional for Customers, required for Employees
+    // For Employees: single dealershipId (required)
+    // For Customers: dealershipIds array (can be linked to multiple dealerships)
     dealershipId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Dealership",
@@ -36,6 +37,29 @@ const userSchema = new mongoose.Schema(
         return this.role === "employee";
       },
     },
+
+    // Customers can be linked to multiple dealerships
+    dealershipIds: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Dealership",
+      default: [],
+    },
+    // customer specific fields
+    phone: {
+      type: String,
+    },
+    address: {
+      street: { type: String },
+      city: { type: String },
+      state: { type: String },
+      zipCode: { type: String },
+      country: { type: String },
+    },
+    dateOfBirth: { type: Date },
+    licenseNumber: { type: String },
+    preferredContact: { type: String },
+    customerType: { type: String },
+    notes: { type: String },
   },
   { timestamps: true }
 );

@@ -51,7 +51,7 @@ export function RegisterComponent() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-200">
+        <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg transition-all duration-200 cursor-pointer">
           Register
         </Button>
       </DialogTrigger>
@@ -133,7 +133,7 @@ export function RegisterComponent() {
               <Button 
                 type="button"
                 variant="outline"
-                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
               >
                 Cancel
               </Button>
@@ -141,7 +141,7 @@ export function RegisterComponent() {
             <Button 
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white cursor-pointer"
             >
               {loading ? "Creating Account..." : "Register"}
             </Button>

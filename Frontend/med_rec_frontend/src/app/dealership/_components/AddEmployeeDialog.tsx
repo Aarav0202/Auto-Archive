@@ -588,14 +588,14 @@ export const AddEmployeeDialog = ({ open, onOpenChange, onEmployeeAdded }: AddEm
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="px-6"
+              className="px-6 cursor-pointer"
               disabled={isLoading}
             >
               Cancel
             </Button>
             <Button 
               type="submit"
-              className="px-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+              className="px-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 cursor-pointer"
               disabled={isLoading}
             >
               {isLoading ? (

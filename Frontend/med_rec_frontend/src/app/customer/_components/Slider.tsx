@@ -40,12 +40,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { LogOut, Trash2, User, Mail, Settings } from "lucide-react";
+import { LogOut, Trash2, User, Mail, Settings, Lock } from "lucide-react";
+import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 
 const Slider = () => {
   const { user, logout } = useAuth();
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = React.useState(false);
+  const [changePasswordDialogOpen, setChangePasswordDialogOpen] = React.useState(false);
 
   const handleDeleteAccount = async () => {
     try {
@@ -126,12 +128,21 @@ const Slider = () => {
               </div>
 
               <div className="space-y-3 mt-6">
+                {/* Change Password Button */}
+                <Button 
+                  onClick={() => setChangePasswordDialogOpen(true)}
+                  className="w-full flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 cursor-pointer"
+                >
+                  <Lock className="h-4 w-4" />
+                  Change Password
+                </Button>
+
                 {/* Logout Button */}
                 <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
                   <AlertDialogTrigger asChild>
                     <Button 
                       variant="outline" 
-                      className="w-full flex items-center gap-2 bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200 text-orange-700 hover:from-orange-100 hover:to-orange-200"
+                      className="w-full flex items-center gap-2 bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200 text-orange-700 hover:from-orange-100 hover:to-orange-200 cursor-pointer"
                     >
                       <LogOut className="h-4 w-4" />
                       Logout
@@ -147,12 +158,12 @@ const Slider = () => {
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel className="border-gray-300 text-gray-700 hover:bg-gray-50">
+                      <AlertDialogCancel className="border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer">
                         Cancel
                       </AlertDialogCancel>
                       <AlertDialogAction 
                         onClick={logout}
-                        className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
+                        className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white cursor-pointer"
                       >
                         Logout
                       </AlertDialogAction>
@@ -165,7 +176,7 @@ const Slider = () => {
                   <AlertDialogTrigger asChild>
                     <Button 
                       variant="outline" 
-                      className="w-full flex items-center gap-2 bg-gradient-to-r from-red-50 to-red-100 border-red-200 text-red-700 hover:from-red-100 hover:to-red-200"
+                      className="w-full flex items-center gap-2 bg-gradient-to-r from-red-50 to-red-100 border-red-200 text-red-700 hover:from-red-100 hover:to-red-200 cursor-pointer"
                     >
                       <Trash2 className="h-4 w-4" />
                       Delete Account
@@ -198,12 +209,12 @@ const Slider = () => {
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel className="border-gray-300 text-gray-700 hover:bg-gray-50">
+                      <AlertDialogCancel className="border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer">
                         Cancel
                       </AlertDialogCancel>
                       <AlertDialogAction 
                         onClick={handleDeleteAccount}
-                        className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
+                        className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete Account Permanently
@@ -216,6 +227,12 @@ const Slider = () => {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Change Password Dialog */}
+      <ChangePasswordDialog 
+        isOpen={changePasswordDialogOpen}
+        onOpenChange={setChangePasswordDialogOpen}
+      />
     </>
   );
 };
