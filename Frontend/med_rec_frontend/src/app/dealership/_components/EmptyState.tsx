@@ -22,7 +22,7 @@ export const EmptyState = ({ onAddEmployee }: EmptyStateProps) => {
         </p>
         <button 
           onClick={onAddEmployee}
-          className="mt-4 px-6 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2"
+          className="mt-4 px-6 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
         >
           <UserPlus className="w-4 h-4" />
           Add Employee

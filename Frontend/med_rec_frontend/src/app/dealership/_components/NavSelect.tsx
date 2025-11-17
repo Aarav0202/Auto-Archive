@@ -19,7 +19,10 @@ import {
   UserPlus, 
   Eye, 
   UserCheck,
-  UserMinus
+  UserMinus,
+  ShoppingCart,
+  Gift,
+  Zap
 } from 'lucide-react'
 
 
@@ -41,7 +44,7 @@ const NavSelect = () => {
             <Button 
               variant="ghost" 
               onClick={() => handleNavigation('/dealership/home')}
-              className="text-sm font-medium hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200 flex items-center gap-2"
+              className="text-sm font-medium hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200 flex items-center gap-2 cursor-pointer"
             >
               <LayoutDashboard className="w-4 h-4 text-blue-600" />
               Dashboard
@@ -50,7 +53,7 @@ const NavSelect = () => {
 
           {/* Employees */}
           <NavigationMenuItem>
-            <NavigationMenuTrigger className="text-sm font-medium data-[state=open]:bg-green-50 data-[state=open]:text-green-700 hover:bg-green-50 hover:text-green-700 transition-colors duration-200 flex items-center gap-2">
+            <NavigationMenuTrigger className="text-sm font-medium data-[state=open]:bg-green-50 data-[state=open]:text-green-700 hover:bg-green-50 hover:text-green-700 transition-colors duration-200 flex items-center gap-2 cursor-pointer">
               <Users className="w-4 h-4 text-green-600" />
               Employees
             </NavigationMenuTrigger>
@@ -60,7 +63,7 @@ const NavSelect = () => {
                   <Button 
                     variant="ghost" 
                     onClick={() => handleNavigation('/dealership/employees/view')}
-                    className="justify-start h-auto p-3 text-left hover:bg-green-50 hover:text-green-700 transition-colors duration-200 flex items-center gap-3"
+                    className="justify-start h-auto p-3 text-left hover:bg-green-50 hover:text-green-700 transition-colors duration-200 flex items-center gap-3 cursor-pointer"
                   >
                     <Eye className="w-4 h-4 text-green-500" />
                     <span>View Employees</span>
@@ -70,7 +73,7 @@ const NavSelect = () => {
                   <Button 
                     variant="ghost" 
                     onClick={() => setIsAddEmployeeOpen(true)}
-                    className="justify-start h-auto p-3 text-left hover:bg-green-50 hover:text-green-700 transition-colors duration-200 flex items-center gap-3"
+                    className="justify-start h-auto p-3 text-left hover:bg-green-50 hover:text-green-700 transition-colors duration-200 flex items-center gap-3 cursor-pointer"
                   >
                     <UserPlus className="w-4 h-4 text-green-500" />
                     <span>Add Employee</span>
@@ -85,16 +88,28 @@ const NavSelect = () => {
             <Button 
               variant="ghost" 
               onClick={() => handleNavigation('/dealership/service')}
-              className="text-sm font-medium hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 flex items-center gap-2"
+              className="text-sm font-medium hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 flex items-center gap-2 cursor-pointer"
             >
               <Wrench className="w-4 h-4 text-orange-600" />
               Service Station
             </Button>
           </NavigationMenuItem>
 
+          {/* Bookings */}
+          <NavigationMenuItem>
+            <Button 
+              variant="ghost" 
+              onClick={() => handleNavigation('/dealership/bookings')}
+              className="text-sm font-medium hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200 flex items-center gap-2 cursor-pointer"
+            >
+              <ShoppingCart className="w-4 h-4 text-indigo-600" />
+              Bookings
+            </Button>
+          </NavigationMenuItem>
+
           {/* Customers */}
           <NavigationMenuItem>
-            <NavigationMenuTrigger className="text-sm font-medium data-[state=open]:bg-purple-50 data-[state=open]:text-purple-700 hover:bg-purple-50 hover:text-purple-700 transition-colors duration-200 flex items-center gap-2">
+            <NavigationMenuTrigger className="text-sm font-medium data-[state=open]:bg-purple-50 data-[state=open]:text-purple-700 hover:bg-purple-50 hover:text-purple-700 transition-colors duration-200 flex items-center gap-2 cursor-pointer">
               <UserCheck className="w-4 h-4 text-purple-600" />
               Customers
             </NavigationMenuTrigger>
@@ -104,7 +119,7 @@ const NavSelect = () => {
                   <Button 
                     variant="ghost" 
                     onClick={() => handleNavigation('/dealership/customers/view')}
-                    className="justify-start h-auto p-3 text-left hover:bg-purple-50 hover:text-purple-700 transition-colors duration-200 flex items-center gap-3"
+                    className="justify-start h-auto p-3 text-left hover:bg-purple-50 hover:text-purple-700 transition-colors duration-200 flex items-center gap-3 cursor-pointer"
                   >
                     <Eye className="w-4 h-4 text-purple-500" />
                     <span>View Customers</span>
@@ -114,7 +129,7 @@ const NavSelect = () => {
                   <Button 
                     variant="ghost" 
                     onClick={() => setIsAddCustomerOpen(true)}
-                    className="justify-start h-auto p-3 text-left hover:bg-purple-50 hover:text-purple-700 transition-colors duration-200 flex items-center gap-3"
+                    className="justify-start h-auto p-3 text-left hover:bg-purple-50 hover:text-purple-700 transition-colors duration-200 flex items-center gap-3 cursor-pointer"
                   >
                     <UserPlus className="w-4 h-4 text-purple-500" />
                     <span>Add New Customer</span>
@@ -122,6 +137,30 @@ const NavSelect = () => {
                 </NavigationMenuLink>
               </div>
             </NavigationMenuContent>
+          </NavigationMenuItem>
+
+          {/* Promotions */}
+          <NavigationMenuItem>
+            <Button 
+              variant="ghost" 
+              onClick={() => handleNavigation('/dealership/promotions')}
+              className="text-sm font-medium hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200 flex items-center gap-2 cursor-pointer"
+            >
+              <Gift className="w-4 h-4 text-orange-500" />
+              Promotions
+            </Button>
+          </NavigationMenuItem>
+
+          {/* New Car Launches */}
+          <NavigationMenuItem>
+            <Button 
+              variant="ghost" 
+              onClick={() => handleNavigation('/dealership/launches')}
+              className="text-sm font-medium hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200 flex items-center gap-2 cursor-pointer"
+            >
+              <Zap className="w-4 h-4 text-blue-600" />
+              Car Launches
+            </Button>
           </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>

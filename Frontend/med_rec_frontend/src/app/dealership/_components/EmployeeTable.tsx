@@ -230,21 +230,21 @@ export const EmployeeTable = ({ employees, onEmployeeUpdated }: EmployeeTablePro
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex space-x-2">
                     <button 
-                      className="text-blue-600 hover:text-blue-900 transition-colors"
+                      className="text-blue-600 hover:text-blue-900 transition-colors cursor-pointer"
                       title="View Details"
                       onClick={() => handleViewClick(employee)}
                     >
                       <Eye className="w-4 h-4" />
                     </button>
                     <button 
-                      className="text-yellow-600 hover:text-yellow-900 transition-colors"
+                      className="text-yellow-600 hover:text-yellow-900 transition-colors cursor-pointer"
                       title="Edit Employee"
                       onClick={() => handleEditClick(employee)}
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button 
-                      className="text-red-600 hover:text-red-900 transition-colors"
+                      className="text-red-600 hover:text-red-900 transition-colors cursor-pointer"
                       title="Delete Employee"
                       onClick={() => handleDeleteClick(employee)}
                     >
