@@ -473,7 +473,7 @@ router.delete("/delete-account", async (req, res) => {
 router.delete("/delete-customer/:customerId", async (req, res) => {
   const token = req.cookies.token;
   const { customerId } = req.params;
-  
+    
   if (!token) {
     return res.status(401).json({ message: "Authentication required" });
   }

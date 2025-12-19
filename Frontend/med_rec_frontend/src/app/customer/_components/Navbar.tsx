@@ -25,7 +25,7 @@ import {HoverCard,HoverCardContent,HoverCardTrigger,} from "@/components/ui/hove
 import {Sheet,SheetContent,SheetDescription,SheetHeader,SheetTitle,SheetTrigger,} from "@/components/ui/sheet"
 
 import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle,DialogTrigger,} from "@/components/ui/dialog"
-import { Gift, Zap, Bell, Home } from "lucide-react"
+import { Gift, Zap, Bell, Home, MessageCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 
@@ -96,6 +96,14 @@ const Navbar = () => {
           >
             <Bell className="w-4 h-4 text-purple-600" />
             Notifications
+          </Button>
+          <Button 
+            variant="ghost"
+            onClick={() => handleNavigation('/customer/chat')}
+            className="text-sm font-medium hover:bg-indigo-50 hover:text-indigo-700 transition-colors duration-200 flex items-center gap-2 cursor-pointer"
+          >
+            <MessageCircle className="w-4 h-4 text-indigo-600" />
+            Chat
           </Button>
         </div>
         
